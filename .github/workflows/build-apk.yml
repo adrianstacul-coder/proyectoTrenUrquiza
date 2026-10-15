@@ -1,0 +1,46 @@
+
+name: Compilar Tren Urquiza
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "TrenUrquizaAndroid_proyecto.zip"
+      - ".github/workflows/build-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Descomprimir proyecto
+        run: |
+          unzip -q TrenUrquizaAndroid_proyecto.zip -d proyecto
+
+      - name: Compilar APK de prueba
+        run: gradle -p proyecto assembleDebug
+
+      - name: Publicar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrenUrquiza-debug
+          path: proyecto/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
